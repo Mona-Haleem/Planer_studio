@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    create
+{% endblock %}
+
+{% block header %}
+<span style="font-size: 80px;">:</span>
+<span class="sub-title ">Create</span>
+{% endblock %}
+
+{% block main %}
+    <h1 class="page-header tourelement">
+        {% if item == 'todo' %}
+            To Do List
+        {% elif item == 'table' %}
+            Table
+        {% elif item == 'calc' %}
+            Calculator
+        {% endif %}
+    </h1>
+
+<form action="{{ url_for('create', item=item) }}" method="post">
+    <div class="container tourelement" style="margin-top:50px;">
+        <div class="row">
+            <!--title and categories-->
+            <div id="titles" class="col-md-4 tourelement">
+                <input autocomplete="off" autofocus class="form-control mb-3" id="title" name="title" placeholder="Title" type="text" required>
+                {% if warning %}
+                    <small class="text-warning" style="color: #000 !important; background-color: #fff;">{{ warning }}</small>
+                {% endif %}
+
+                {% if item == 'table' %}
+                    <h3>Periods</h3>
+                    <div class="row">
+                        <div class="col-md-4" style="flex:2">
+                            <input type="text" autocomplete="off" autofocus class="form-control mb-3" id="newCategory" >
+                            <div class="row">
+                                <h5 style="display: inline-block; width: 5%; text-align:left; margin-right:35px;">From: </h5>
+                                <input type="time" autocomplete="off" autofocus class="form-control mb-3" id="newCategory_start" style="display: inline-block; width: 22%; ">
+                                <h5 style="display: inline-block; width: 15%;">To:</h5>
+                                <input type="time" autocomplete="off" autofocus class="form-control mb-3" id="newCategory_end" style="display: inline-block; width:22%;">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" onclick="addCategory()" class="btn btn-primary" style="display: inline-block;height:80px;border-radius:10px;">Add Period</button>
+                        </div>
+                    </div>
+                    <select id="categories" name="categories" size="2" multiple class="form-control mt-3">
+                    </select>
+                {% else %}
+                    <h3>Categories</h3>
+                    <input type="text" autocomplete="off" autofocus class="form-control mb-3" id="newCategory">
+                    <button type="button" onclick="addCategory()" class="btn btn-primary">Add Category</button>
+                    <select id="categories" name="categories" size="2" multiple  class="form-control mt-3">
+                    </select>
+                {% endif %}
+
+            </div>
+
+            <!--dates-->
+            <div class="col-md-4 tourelement" style="margin-left:100px;width:200px">
+                <input type="date" id="edit_start_date" name="startDate" value="{{ today }}" required class="form-control mb-3"  onchange="calculateEndDate()">
+                <h3>Duration</h3>
+                <select id="edit_duration" class="select form-control mb-3" name="durationSelect" size="1" onchange="checkCustomOption(this,'durationInput','table')">
+                    <option selected style="display:none;">--</option>
+                    {% if item != 'table' %}
+                    <option value="0">once</option>
+                    <option value="1">Daily</option>
+                    {% endif %}
+                    <option value="7" >Weekly</option>
+                    <option value="30">Monthly</option>
+                    <option value="temp">Custom +</option>
+                </select>
+                 <div id="durationInput_div" style="position: relative; display:none;">
+                    <input autocomplete="off" class="form-control mb-3" id="durationInput" name="durationinput" placeholder="Custom" type="number"  min="1" >
+                    <button type="button" class="btn-add" id="durationInput_selectbtn" style="position: absolute; right: 0; top: 0; " >&#x21E8;</button>
+                 </div>
+                <input type="date" id="edit_end_date" name="endDate" class="form-control mb-3" style="margin-top:70px;">
+            </div>
+
+            <div style="width:750px; margin-top:50px;">
+                {% if item == 'calc' %}
+                <h3 style="text-align:left;">load Calculator Items values</h3>
+                    {% if calc_tables %}
+                    <div class="d-flex flex-wrap" style="margin-top:20px; margin-bottom:20px;" >
+                        {% for table in calc_tables %}
+                            <div class="d-flex align-items-center mb-3 me-3">
+                                <input type="checkbox" name="tables[]" value="{{ table['id'] }}" class="me-2 custom-checkbox" checked>
+                                <h5 class="mb-0" style="background-color:#F8F4EF; border: 3px solid #916134; min-width:75px;">{{ table['title'] }}</h5>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+                <input type="text" class="form-control mb-3 tourelement" id="goals" name="goals" placeholder="Goals">
+                <textarea id="notes" name="notes" placeholder="Notes" class="form-control mb-3 tourelement"></textarea>
+                <button class="btn btn-primary tourelement" type="submit" style="padding:5px; width:150px;">Create</button>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+
+
+
+
+
+{% endblock %}

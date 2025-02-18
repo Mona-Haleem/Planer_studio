@@ -1,0 +1,352 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Table : {{ table[0].title }}
+
+{% endblock %}
+
+{% block header %}
+<span style="font-size: 80px;">:</span>
+<span class="sub-title">{{ table[0].title|capitalize }}</span>
+{% endblock %}
+
+{% block main %}
+{% if table %}
+<h1>{{ table[0]['title'] }}</h1>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4 item-container" style="margin-left:10%;height:50px">
+            <p>Start Date: {{ table[0]['start_date'] }}</p>
+        </div>
+        <div class="col-md-4 item-container" style="margin-left:30%;height:50px">
+            <p>End Date: {{table[0]['end_date'] }}</p>
+        </div>
+    </div>
+</div>
+
+<div style="width:90%;margin-top:20px;">
+    <h1 style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">{{ table[0].goal }}</h1>
+    <div id="progress_bar">
+      <progress value="{{progress}}" max="100"></progress>
+    </div>
+</div>
+
+{% else %}
+<p>No table found.</p>
+{% endif %}
+
+
+
+<table id="timetable">
+    <thead id="headers">
+       <tr>
+            <th style="min-width:100px;" rowspan="2"></th>
+            <th id="m_period_morning" style="max-height:75px;min-width:250px;">
+                <div style="display:flex; flex-direction: column;justfy-content:center">
+                <h3>MORNING</h3>
+                <h5 id="1_timer">6:00am to 12:00pm</h5>
+                </div>
+            </th>
+            <th id="a_period_afternoon" style="max-height:75px;min-width:250px;">
+                <div style="display:flex; flex-direction: column;justfy-content:center">
+                    <h3>AFTERNOON</h3>
+                    <h5 id="2_timer" >12:00pm to 6:00pm</h5>
+                </div>
+            </th>
+            <th id="n_period_night" style="max-height:75px;min-width:250px;">
+                <div style="display:flex; flex-direction: column;justfy-content:center">
+                    <h3>NIGHT</h3>
+                    <h5 id="3_timer">6:00pm to 12:00am</h5>
+                </div>
+            </th>
+            <th id="d_period_dawn" style="max-height:75px;min-width:250px;display:none;">
+                <div style="display:flex; flex-direction: column;justfy-content:center">
+                    <h3>DAWN</h3>
+                    <h5 id="4_timer">12:00am to 6:00am </h5>
+                </div>
+            </th>
+        </tr>
+        <tr id="period-container" ></tr>
+        <!--period template-->
+         <!---------period temp -------------->
+         <tr style="display:none">
+            <th id="N_period_temp" >
+                <!-- period text -->
+                <div class="row periodcell" style="max-height:75px;min-width:250px;padding:0;margin:0;">
+                    <div class="col-6" style="justify-content:center;flex: 7;">
+                        <div id="N_period_container" style="display:flex; flex-direction: column;">
+                            <div id="N_text" >
+                                <h4 id="N_period" ></h4>
+                            </div>
+                            <div style="margin-left:10%;">
+                                <h5><span id="N_timer_start" ></span> to <span id="N_timer_end"></span></h5>
+                            </div>
+                        </div>
+                    </div>
+                <!--period actions -->
+                    <div class="col-6 periodbtn" style="flex:1 ;max-width:50px; background-color:#818DCC;padding:0px;margin:0px;box-shadow: -3px 0px 5px rgba(0, 0, 0, 0.2);">
+                        <div class="d-flex justify-content-end">
+                            <div style="display:flex; flex-direction: column;">
+                                <button id="N_remove" class="eventbtn" style="align-items: center;max-height:35px;max-width:50px;" onclick="remove('N_period_temp', N, 'period')">
+                                    <img src="/static/icons/8.png" alt="Icon 2" style="width:80%; height:80%;">
+                                </button>
+                                <button id="N_edit" class="eventbtn" style="max-height:35px;max-width:50px;" >
+                                    <img src="/static/icons/4.png" alt="Icon 2" style="width:70%; height:70%;">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th>
+         </tr>
+    </thead>
+
+    <tbody>
+        {% for day in days %}
+            <tr id="day_{{ loop.index }}_{{ day[4:]}}" >
+                <td id="daycell" class="day-cell" >{{ day.split(',')[0] if days|length == 7 else 'day' ~ loop.index }}</td>
+                {% if not periods %}
+                 <td id="d_{{ day[4:]}}" style="background-color:#999;display:none;"><img id="{{  day[4:] }}_d_img" data-day="{{  day[4:] }}" data-period="afternoon" src="/static/icons/6.png" alt="Icon 1" style="width: 5%;height:5;"></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot style="display:none">
+        <tr>
+            <!--perio add button-->
+            <td id="N_addbtn" style="background-color:#999; min-width:150px;">
+                <img id="N_img" src="/static/icons/6.png" alt="Icon 1" style="width: 5%;height:5;min-width:100px;minheight:100px;">
+            </td>
+        </tr>
+    </tfoot>
+</table>
+<!--table cell template-->
+<div style="display:none;">
+    <div id="N_table_event_temp" class="eventcell row" style="padding:0;margin:0;">
+        <!-- cell text -->
+        <div class="col-6" style="flex: 6;">
+            <div id="N_item_container" style="display:flex; flex-direction: column;">
+                <div id="N_text" class="item-details" >
+                    <input type="hidden" id="N_item_id">
+                    <a id="N_hyperlink" ><h4 id="N_item" style="margin-left:20px;">00</h4></a>
+                </div>
+
+                <div style="margin-left:10%;">
+                    <h5 id="N_timer" style="margin-left:0px;">00</h5>
+                </div>
+                <div id="N_category_items" class="list-group" style="max-height: 60px; overflow-y: scroll;"></div>
+                <div id="N_toggel" class="item-details" style="margin-bottom:25px;">
+                    <input type="checkbox" id="N_status" name="itemCheckbox" class="itemcheckbox">
+                    <button id="N_star_btn" class="eventtoggel " style="margin-left:10%">
+                        <img id="N_star" src="/static/icons/03.png" alt="Icon 2" style="width:80%; height:80%;">
+                    </button>
+                    <button id="N_alarm_btn" class="eventtoggel " >
+                        <img id="N_alarm" src="/static/icons/02.png" alt="Icon 2" style="width:90%; height:80%;">
+                    </button>
+                    <button id="N_expand_btn" class="eventtoggel" >
+                            <img src="/static/icons/9.png" alt="Icon 2" style="width:60%; height:60%;">
+                    </button>
+                    <button id="N_link_btn" class="eventtoggel" >
+                        <img id="N_link" src="/static/icons/11.png" alt="Icon 2" style="width:80%; height:80%;">
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- cell actions -->
+        <div id="event_btn" class="col-6 eventbtncellbtn" style="flex:2 ;padding:0px;margin:0px;box-shadow: -3px 0px 5px rgba(0, 0, 0, 0.2);width:20px;">
+            <div class=" d-flex justify-content-end">
+                <div style="display:flex; flex-direction: column;max-height:calc((100%-20px)/2);">
+                    <button id="N_remove" class="eventbtn  btn-secondary" style="align-items: center" >
+                        <img src="/static/icons/8.png" alt="Icon 2" style="width:120%; height:120%;">
+                    </button>
+                    <button id="N_edit_btn" class="eventbtn btn-secondary" >
+                        <img src="/static/icons/4.png" alt="Icon 2" style="width:100%; height:100%;">
+                    </button>
+                    <input type="color" id="N_colorPicker" name="colorPicker" value="#22242E"  class="eventbtn btn-secondary" style="width:100%;height:35px;" onchange="update_color('N_table_event_temp',this.value,'update')">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!---category items temp-->
+<div style="display:none;">
+    <div id="N_item_temp" style="display:flex;margin-bottom:-10px">
+        <input type="checkbox" id="N_status" name="itemCheckbox" class="itemcheckbox" style="width:15px;height:15px;">
+        <h4 id="N_item" style="margin-left:20px;font-size:18px;">00</h4>
+     </div>
+</div>
+<button id="add_period_btn" class="add-event" onclick="showForm('overlay_period');" >
+    <img src="/static/icons/6.png" alt="Icon 1" style="width: 100%;height:100;">
+</button>
+<!---table forms--->
+<!--add period form-->
+<div class="overlay" id="overlay_period" style="display: none;z-index:1;">
+    <div class="form-container" >
+        <form id="periodForm" action="/update_element" method="post" onsubmit="return submitForm(event,'create', 'period','periodForm','period-container')">
+            <input type="hidden" id="table_id" name="table_id" value="{{ table[0]['id'] }}">
+            <input type="text" id="Name" name="period" required>
+            <div>
+                <h5>from</h5><input type="time" id="timer_start" name="timer_start" required>
+                <h5>To</h5><input type="time" id="timer_end" name="timer_end" required>
+            </div>
+            <button type="submit" onclick="hideForm('overlay_period')">Submit</button>
+        </form>
+    </div>
+</div>
+<!----edit period form-->
+<div class="overlay" id="overlay_period_edit" style="display: none;z-index:1;">
+    <div class="form-container" >
+        <form id="periodForm_edit" action="/update_element" method="post" onsubmit="return submitForm(event,'update', 'period','periodForm_edit','period-container')">
+            <input type="hidden" id="edit_id" name="id" >
+            <input type="hidden" id="table_id" name="table_id" value="{{ table[0]['id'] }}">
+            <input type="text" id="edit_period" name="period" required>
+            <div>
+            <h5>from</h5><input type="time" id="edit_timer_start" name="timer_start" required>
+            <h5>To</h5><input type="time" id="edit_timer_end" name="timer_end" required>
+        </div>
+            <button type="submit" onclick="hideForm('overlay_period_edit')">Submit</button>
+        </form>
+    </div>
+</div>
+<!--add event form-->
+<div class="overlay" id="overlay_event" style="display: none;">
+    <div class="form-container">
+        <form id="eventForm" action="/update_element" method="post" onsubmit="return ">
+            <div class="row" style="max-width:500px;">
+                <div class="col" style="flex:1;display: flex; align-items: center;">
+                    <select id="event_type" class="select" name="event_type" size="4" onchange="pick_table(this.value)" >
+                        <option value="" style="display:none;" selected>--</option>
+                        <option value="event" >New</option>
+                        <option value="item" >pick item</option>
+                        <option value="category">pick category</option>
+                         <option value="table" >link with table</option>
+                    </select>
+                </div>
+                <div class="col" style="flex:4;background-color:#efefef;">
+                    <div class="row" style="margin:10px;margin-right:0px">
+                        <input type="text" id="eventName" name="Name" placeholder="Event" style="max-width:90%;" required >
+                     </div>
+                     <div class="row" style="margin-bottom:10px;">
+                        <div id="links" style="display:flex;width:50%;display:none;">
+                            <label  style="margin-left:-3%;margin-right:10px;">Link Table</label>
+                            <select id="linkvalue" class="select" name="link" size="1" style="width:50%" onchange="pick_link_table()" >
+                                <option value="">--</option>
+                            {% for link in links %}
+                            {% if link['type'] != 'main' %}
+                                <option value="{{ url_for(link['type'], item=link['id']) }}" data-table-id="{{ link['id'] }}" style="{% if link['type'] == 'calc' %}background-color: #FBFFD9;{% elif link['type'] == 'todo' %}background-color: #FBD9FF;{% elif link['type'] == 'table' %}background-color: #E2D9FF;{% else %}background-color: #EEFEEE;{% endif %}">{{link['title']}}</option>
+                            {% endif %}
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div id="items" style="display:flex;width:50%;display:none;">
+                            <label style="margin-left:-15%;margin-right:10px;">Event</label>
+                            <select id="pick_item" class="select" name="item_id" size="1" style="width:50%" onchange="document.getElementById('eventName').value = this.options[this.selectedIndex].textContent;"></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div style="display:flex;width:50%">
+                            <label style="margin-left:-3%;margin-right:10px;">Frequency</label>
+                            <select id="frequency" class="select" name="Type" size="1"  onchange="checkselection(this.value)">
+                                <option value="{{table[0]['duration']}}"selected>once</option>
+                                <option value="1">daily</option>
+                                <option value="tempdays" >pick days</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;width:50%">
+                            <label style="margin-right:10px;" >Time</label>
+                            <input type="time" id="Timer" name="Time" min="08:00" max="18:00" value="08:00" style="width:50%">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div id="selectInput_div">
+                            <div id="daystoSelect" class="d-flex flex-wrap">
+                            {% for day in days %}
+                            <div class="d-flex ">
+                                    <input id="{{loop.index}}_daycheckbox" type="checkbox" name="dates[]" value="{{ day.split(',')[1] }}" class="me-2 ">
+                                    <h5 id="{{loop.index}}_daylable" style="margin-left:-10px;margin-right:10px;padding:0px;min-width:60px;">{{ day.split(',')[0] if days|length == 7 else 'day' ~ loop.index }}</h5>
+                            </div>
+                            {% endfor %}
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="user_id" name="user_id" value="{{user_id}}">
+            <input type="hidden" id="new_event_period_id" name="period" value="item_period" >
+            <input type="hidden" id="Date" name="Date">
+            <button type="submit" onclick="hideForm('overlay_event');">Submit</button>
+        </form>
+    </div>
+</div>
+<!--edit event form-->
+<div class="overlay" id="overlay_edit_event" style="display: none;">
+    <div class="form-container">
+        <form id="edit_eventForm" action="/update_element" method="post" onsubmit="return submitForm(event, 'update', 'table_event', 'edit_eventForm', '')">
+            <div class="row" style="max-width:500px;">
+                <div class="col" style="flex:4;background-color:#efefef;">
+                    <div class="row" style="margin:10px;margin-right:0px">
+                        <input type="text" id="edit_eventName" name="Name" placeholder="Event" style="max-width:90%;" required >
+                     </div>
+                     <div class="row" style="margin-bottom:10px;">
+                        <div id="links" style="display:flex;width:100%;">
+                            <label  style="margin-left:-3%;margin-right:10px;">Link</label>
+                            <select id="edit_linkvalue" class="select" name="link" size="1" style="margin-left:5%;width:100%" >
+                                <option value="">--</option>
+                            {% for link in links %}
+                            {% if link['type'] != 'main' %}
+                                <option value="{{ url_for(link['type'], item=link['id']) }}" data-table-id="{{ link['id'] }}" style="{% if link['type'] == 'calc' %}background-color: #FBFFD9;{% elif link['type'] == 'todo' %}background-color: #FBD9FF;{% elif link['type'] == 'table' %}background-color: #E2D9FF;{% else %}background-color: #EEFEEE;{% endif %}">{{link['title']}}</option>
+                            {% endif %}
+                            {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div style="display:flex;width:100%">
+                            <label style="margin-right:10px;" >Time</label>
+                            <input type="time" id="edit_Timer" name="Time" min="08:00" max="18:00" value="08:00" style="width:50%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="event_id" name="id" >
+            <input type="hidden" id="event_item_id" name="item_id" >
+            <button type="submit" onclick="hideForm('overlay_edit_event');">Submit</button>
+        </form>
+    </div>
+</div>
+
+<!-------------------------------------------------------------------------------------------------------->
+<script>
+    var link_items = {{link_items|tojson }};
+    var current_links = {{ current_links | tojson | safe }};
+    var items = {{ items|tojson }};
+    var periods = {{ periods|tojson }};
+    var id ={{ table[0].id |tojson}}
+    console.log('Periods Data:', {{ periods|tojson }},id);
+    console.log('Items:', items);
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const parents = document.querySelectorAll('tr[id^="day_"]');
+        console.log(parents);
+        parents.forEach(parent => {
+            const observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
+                        show_hide_periodBtn();
+                    }
+                });
+            });
+
+        observer.observe(parent, { childList: true, subtree: true });
+    });
+        loadtableperiod(periods,id,link_items)
+        loadtablecell(periods,items,current_links)
+    })
+
+//-------------------------------------------------------------------------
+
+</script>
+{% endblock %}

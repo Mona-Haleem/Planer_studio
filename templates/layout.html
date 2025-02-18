@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
+
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+        <!-- http://getbootstrap.com/docs/5.1/ -->
+        <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" rel="stylesheet">
+        <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"></script>
+
+        <link href="/static/styles.css" rel="stylesheet">
+
+        <title>PLANER: {% block title %}{% endblock %}</title>
+        <!--add scripts and libraries-->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="/static/scripts/script.js"></script>
+        <script src="/static/scripts/layoutscript.js"></script>
+        <script src="/static/scripts/tutorialscript.js"></script>
+
+    </head>
+    <body>
+        <header>
+            <nav class="navbar  navbar-expand-md ">
+                <div class="container-fluid ">
+                    <!--title container-->
+                    <div class="container" style="position:fixed; margin-right:30x;">
+                        <a class="navbar-brand exclude" href="/">
+                            <div class="d-flex align-items-center">
+                                <img alt="kitty" src="/static/kitty.png" height="170px" class="me-2">
+                                <h1 class="main_header"><span style="font-size: 80px;">PLANNER STUDIO</span>{% block header %}{% endblock %}</h1>
+                            </div>
+                        </a>
+                    </div>
+                    <!--log out-->
+                    {% if session["user_id"] %}
+                        <form id="logout" action="/logout" method="post">
+                            <div style="position:relative;right:10%;margin-top:100px" >
+                                <button type="submit" style="background-color:rgba(0,0,0,0);border:none;">
+                                    <img src="/static/icons/5.png" width="5%" >
+                                    <Lable style="position:relative;color:#ccc">log out</Lable>
+                                </button>
+                            </div>
+                        </form>
+                     {% endif %}
+                    <!--calender container-->
+                    <div id="calendar-wrapper" class="navbar-nav ms-auto ">
+                        <div id="tiny-calendar-container"></div>
+                        <div class="navigateCalender">
+                            <div id="previous">&#x2191;</div>
+                            <div id="next">&#x2193;</div>
+                        </div>
+                        <div id="calendar-header"></div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!---side navigation bar -->
+        <nav id="sidebar" class="d-flex flex-column align-items-center">
+            <div class="position-sticky">
+               {% if session["user_id"] %}
+               <!-- navigation items-->
+                <ul class="nav flex-column" >
+                    <li id="creat_tables" class="nav-item dropdown d-flex">
+                        <a class="nav-link" href="#" >CREATE</a>
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+                        <div id="creatDropdown" class="dropdown-menu" aria-labelledby="createLink">
+                            <a id="todo" class="dropdown-item" href="{{ url_for('create', item='todo') }}">To-Do List</a>
+                            <a id="calc" class="dropdown-item" href="{{ url_for('create', item='calc') }}">Calculator</a>
+                            <a id="table" class="dropdown-item" href="{{ url_for('create', item='table') }}">Timetables</a>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li id="browse_tables"  class="nav-item dropdown d-flex">
+                        <a class="nav-link" href="{{ url_for('browse', item='all') }}" id="browseLink">BROWSE</a>
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+                        <div id="browseDropdown" class="dropdown-menu" aria-labelledby="browseLink">
+                            <a class="dropdown-item" href="{{ url_for('browse', item='todo') }}">To-Do List</a>
+                            <a class="dropdown-item" href="{{ url_for('browse', item='calc') }}">Calculator</a>
+                            <a class="dropdown-item" href="{{ url_for('browse', item='table') }}">Timetables</a>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li id="eventslink" class="nav-item"><a class="nav-link" href="/events">EVENTS</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li id="preferences" class="nav-item"><a class="nav-link" href="/preferences">PREFERENCES</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li id="tour" class="nav-item" onclick="get_Page_info(0)">Get A tour</li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li id="help" class="nav-item" onclick="get_Page_info(1)">Explore page</li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="gifToggle" id="showKitty" value="0" onchange="toggleGifContainer()">
+                        <span style="margin-left:5px;font-size:16px;">show Kitty</span>
+                    </li>
+                </ul>
+                <!--kitty div-->
+                <div class="fluffball" id="fluffball" style="display:none"></div>
+                <div id="fixedGifContainer">
+                    <div id="gifContainer" style="background-color:#fff;display:none; ">
+                        <img id="kitty-gifs" alt="gif" class="gif" src="/static/gifs/1.gif" height="150px;"width="150px">
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </nav>
+
+        <div class="background-container"></div>
+        <div id="speechBubble" class="speech-bubble" style="display:none;"></div>
+
+        <div id="readonly" class="readonly" style="display:none;"></div>
+        <!--main content-->
+        <main class="container-fluid py-5 text-center "  id="main">
+            <div id="speechBubble2" class="speech-bubble2" style="display:none;" ></div>
+            {% block main %}{% endblock %}
+        </main>
+
+        <footer >
+            <div id="endTutorial" style="position:fixed;bottom:70%;left:90%;display:none;border-radius:50%;">
+            <span id="exitTutorialButton" style=" margin-left:5px;font-size:16px;background-color:red;" onclick="endtutorial(3,'none')">Exit</span>
+            </div>
+        </footer>
+
+        <script>
+
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            var start_date = firstDayOfMonth.toISOString().split('T')[0];
+            {% if session %}
+            var alarms = {{ alarms | tojson | safe }};
+            var session_date = {{session_date|tojson}}
+            start_date = session_date;
+            {% endif %}
+            {% if start %}
+            var start = {{start|tojson}};
+            console.log(start)
+            start_date =  start
+            {% endif %}
+
+            {% if end_tables %}
+                 var end_tables = {{ end_tables | tojson | safe }};
+                 console.log(end_tables);
+                 document.addEventListener('DOMContentLoaded', function () {
+                  check_tables(end_tables);
+
+                })
+            {% endif %}
+            setbackground();
+                var storedIndex = localStorage.getItem('selectedColorIndex');
+                setColors(storedIndex !== null ? parseInt(storedIndex, 10) : 0);
+            document.addEventListener('DOMContentLoaded', function () {
+                console.log(start_date)
+                generateCalendar(null, start_date);
+                var tutorial_status = localStorage.getItem('tutorial');
+                if (tutorial_status === 'on'){
+                    get_Page_info(2);
+                }
+                setInterval(checkAlarms(alarms), 10000);
+
+            })
+
+
+
+
+
+
+
+
+        </script>
+
+
+    </body>

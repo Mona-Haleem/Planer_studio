@@ -1,0 +1,268 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    List : {{ todo_list[0].title }}
+{% endblock %}
+
+{% block header %}
+<span style="font-size: 80px;">:</span>
+<span class="sub-title">{{ todo_list[0].title|capitalize }}</span>
+{% endblock %}
+
+{% block main %}
+<!--basic to do list informations-->
+{% if todo_list %}
+<h1 class="page-header">{{ todo_list[0].title|capitalize }}</h1>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4 item-container" style="margin-left:10%;height:50px">
+            <p>Start Date: {{ todo_list[0].start_date }}</p>
+        </div>
+        <div class="col-md-4 item-container" style="margin-left:30%;height:50px">
+            <p>End Date: {{ todo_list[0].end_date }}</p>
+        </div>
+    </div>
+</div>
+<div style="width:90%;margin-top:20px;">
+  <h1 style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">{{ todo_list[0].goal }}</h1>
+  <div id="progress_bar">
+    <progress value="{{progress}}" max="100"></progress>
+  </div>
+</div>
+
+{% else %}
+<p>No todo list found.</p>
+{% endif %}
+<!---list items--->
+<div id="container-test" class="container mt-4" ></div>
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!---list templates-->
+<div id="temp" style="display:none;">
+<!--category template-->
+    <div id="N_category_temp" class="accordion-container">
+        <div class="accordion " id="N_accordion" >
+            <div class="accordion-item">
+                <!----header---->
+                <div class="accordion-header" id="N_category_header" >
+
+                    <div class="category-details">
+                         <h2 id="N_category"></h2>
+                         <!---edit category form--->
+                         <form id="N-category-edit" style="display:none"  action="/update_element" method="post" onsubmit="return submitForm(event,'update','category','N-category-edit','container-test')">
+                            <input type="hidden" name="id" id="category_id" value="N">
+                            <input type="text" name="Category" id="N_category_edit" required>
+                            <button type="submit" onclick="toggleInput('N_category', 'N-category-edit')" class="btn-add" id="N_category" style="display:inline-block; ">&#x21E8;</button>
+                        </form>
+                    </div>
+
+                    <div class="category-actions">
+                            <!--duration-->
+                            <select id="N_duration" class="select" name="duration" size="1" onchange="checkCustomOption(this,'N_selectInput','category') ">
+                            {% for item in durations %}
+                                {% for label, value in item.items() %}
+                                {% if value | default(-1) | int <= todo_list[0]['duration'] %}
+                                    <option value="{{ value }}" {% if value | int == todo_list[0]['duration'] %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            </select>
+                            <div id="N_selectInput_div" style="display:none; margin-right:20px;">
+                                <input autocomplete="off" class="form-control mx-auto w-auto" id="N_selectInput" name="durationinput" placeholder="custom" min="1" type="number" >
+                                <button type="button" class="btn-add" id="N_selectbtn" style="position:relative;bottom:120%; left:40%;" >&#x21E8;</button>
+                            </div>
+                            <!--buttons-->
+                            <button class="btn btn-secondary"  style="max-width:12%; display: flex; align-items: center; justify-content: center;"onclick="remove('N_category_temp', N, 'category')">
+                                <img src="/static/icons/8.png" alt="Icon 2" style="width:250%; height:150%;">
+                               </button>
+                            <button class="btn btn-secondary" style="max-width:12%; display: flex; align-items: center; justify-content: center;" onclick="toggle('N_temp_itemform')">
+                                <img src="/static/icons/6.png" alt="Icon 1" style="width: 120%;height:120;">
+                            </button>
+                            <button class="btn btn-secondary" style="max-width:12%; display: flex; align-items: center; justify-content: center;" onclick="document.getElementById('N_category_edit').value = document.getElementById('N_category').textContent;toggleInput('N_category', 'N-category-edit')">
+                                <img src="/static/icons/4.png" alt="Icon 2" style="width:100%; height:100%;">
+                            </button>
+                            <button type="button" class="btn btn-primary" style="border:none;background-color:transparent;max-width:15px;padding:0px;margin-right:-25px;" onclick="toggle('N_collapse')">
+                                ⮟
+                            </button>
+                    </div>
+                </div>
+                <!--category items-->
+                <div id="N_collapse" class="accordion-collapse collapse show" aria-labelledby="N_category_header" data-bs-parent="#N_accordion">
+                    <div class="accordion-body">
+                          <ul class="accordion-list" id="N_category_items">
+                              <!--add item form-->
+                              <li class="accordion-list-item" id="N_temp_itemform"  style="display: none;" >
+                                  <form id="N_temp_itemsform" class="accordion-form" action="/update_element" method="post" style="display: block;" onsubmit="return submitForm(event,'create','item','N_temp_itemsform','N_category_items')">
+                                    <div>
+                                       <input type="hidden" name="category_id" id="category_id" value="N">
+                                       <input autocomplete="off" class="form-control mx-auto w-auto" id="item" name="item" type="text" placeholder="Todo" required>
+                                       <button type="submit" onclick="toggle('N_temp_itemform')" class="btn-add" id="submitCategoryButton" style="display:inline-block; position:relative; left:45%; bottom:39px;">&#x21E8;</button>
+                                    </div>
+                                  </form>
+                              </li>
+                          </ul>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  <!---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+ <!---item template--->
+    <ul>
+        <li id="N_item_temp" class=" itemrow row">
+            <div id="N_item_container"  class="list-item-container">
+
+                <div id="N_text" class="item-details col-6">
+                    <input type="checkbox" id="N_status" name="itemCheckbox" class="itemcheckbox">
+                    <a id="N_hyperlink" ><h3 id="N_item" style="margin-left:20px;"></h3></a>
+                </div>
+
+                <div id="item_actions" class="item_actions_container col-6 d-flex justify-content-end">
+                    <div class="item_actions">
+                        <button id="N_star_btn" class="itembtn ">
+                            <img id="N_star" src="/static/icons/03.png" alt="Icon 2" style="width:250%; height:250%;">
+                        </button>
+                        <button id="N_alarm_btn" class="itembtn " >
+                            <img id="N_alarm" src="/static/icons/02.png" alt="Icon 2" style="width:300%; height:300%;">
+                        </button>
+                        <button id="N_link_btn" class="itembtn ">
+                            <img id="N_link" src="/static/icons/01.png" alt="Icon 2" style="width:300%; height:300%;">
+                        </button>
+                        <button id="N_remove" class="itembtn deletebtn" style=" align-items: center; "onclick="remove('N_item_temp', N, 'item')">
+                            <img src="/static/icons/8.png" alt="Icon 2" style="width:300%; height:300%;">
+                        </button>
+                        <button id="N_edit" class="itembtn editbtn" onclick="document.getElementById('N_item_edit').value = document.getElementById('N_item').textContent;toggleInput('N_item_container', 'N_itemform')">
+                            <img src="/static/icons/4.png" alt="Icon 2" style="width:200%; height:200%;">
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!--item editing form-->
+            <form id="N_itemform" action="/update_element" method="post" style="display: none;" onsubmit="return submitForm(event,'update','item','N_itemform','N_category_items')">
+                <div class="d-flex align-items-center justify-content-center">
+                    <div style="position: relative;">
+                        <input type="hidden" name="id" id="item_id" value="N">
+                        <input autocomplete="off" class="form-control mx-auto w-auto" id="N_item_edit" name="item" type="text" placeholder="Todo" style="padding-right: 30px; box-sizing: border-box;">
+                        <button type="submit" onclick="toggleInput('N_itemform', 'N_item_container')" class="btn-add" id="submitCategoryButton" style="position: absolute; right: 0; top: 0;">&#x21E8;</button>
+                    </div>
+                </div>
+            </form>
+        </li>
+    </ul>
+</div>
+<div id="N_day" class="d-flex" style="display: none;">
+    <input id="N_daycheckbox" type="checkbox" name="dates[]" class="me-2 ">
+    <h5 id="N_daylable" style="margin-left:-10px;margin-right:10px;padding:0px;min-width:60px;"></h5>
+</div>
+<!-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+<!--load list items-->
+{% if categories %}
+    {% for category in categories %}
+        <script>
+            // load category
+            load_element('category_temp', {{ category | tojson | safe }}, 'container-test');
+            var items = {{ items | tojson | safe }};
+            var alarms = {{ alarms | tojson | safe }};
+            var current_links = {{ current_links | tojson | safe }};
+            //load items
+            if (items) {
+            items.forEach(function (item) {
+                    if (item['category_id'] === {{category['id']}}){
+                        console.log("Loading item_temp:", item);
+                        load_element('item_temp', item,  item['category_id'] + '_category_items');
+                        //add functions to item buttons
+                        document.addEventListener('DOMContentLoaded', function () {
+                            setState(item,current_links);
+                            addItemButtonsEvents(item,'item');
+                            });
+                        }
+                 });
+             }
+        </script>
+    {% endfor %}
+{% endif %}
+<!---list forms--->
+ <!--add new categreis-->
+ <div style="position: fixed;bottom: 60px;right: 40px;">
+    <form id="categoryForm" action="/update_element" method="post" onsubmit="return submitForm(event,'create','category','categoryForm','container-test')">
+        <div class="d-flex align-items-center justify-content-center">
+            <div style="position: relative;">
+                <input type="hidden" name="table_id" value="{{ todo_list[0].id }}">
+                <div id="formediting" style="display:none;">
+                <input autocomplete="off" class="form-control mx-auto w-auto" id="Category" name="Category" type="text" style="padding-right: 30px; box-sizing: border-box;" required>
+                <button type="submit" class="btn-add" id="submitCategoryButton" onclick="toggleInput('addCategoryButton','formediting')" style="position: absolute; right: 0; top: 0;">&#x21E8;</button>
+                </div>
+                <button type="button" class="add-event btn-add" id="addCategoryButton" onclick="toggleInput('addCategoryButton','formediting')" >
+                    <img src="/static/icons/6.png" alt="Icon 1" style="position: fixed;bottom:40px;right:40px;width: 40px;">
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-------------------------------------------------------------------------------------------------------------------------------------------->
+<!--alarm form-->
+<div class="overlay" id="overlay_alarm" style="display: none;">
+    <div class="form-container">
+        <form id="eventForm" action="/update_element" method="post" style="max-width:350px;" onsubmit="return submitForm(event,'create', 'alarm','eventForm','none')">
+            <input type="hidden" id="user_id" name="user_id" value="{{user_id}}" >
+            <input type="hidden" id="event_type" name="event_type" value="item" >
+            <input type="hidden" id="event_item_id" name="item_id">
+            <input type="hidden" id="eventName" name="Name" >
+            <div class="row" style="max-width:500px;">
+                <div style="display:flex;width:50%">
+                    <label style="margin-left:-3%;margin-right:10px;">Frequency</label>
+                    <select id="frequency" class="select" name="Type" size="1" onchange="load_days();">
+                        {% for item in durations %}
+                            {% for label, value in item.items() %}
+                                <option value="{{ value }}" >{{ label }}</option>
+                            {% endfor %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display:flex;width:50%">
+                    <label style="margin-right:10px;" >Time</label>
+                    <input type="time" id="Timer" name="Time" style="width:50%">
+                </div>
+            </div>
+            <div class="row" style="margin-bottom:10px;margin-top:10px;">
+                <div class="d-flex" >
+                    <div style="display:flex;width:50%;">
+                        <input type="date" id="Date" name="Date" value="{{ today }}">
+                    </div>
+                    <div class="d-flex " style="display:flex;width:50%;display:none;">
+                        <input id="pickdays" type="checkbox" name="dates[]" class="me-2 " onchange="load_days()">
+                        <h5  style="margin-left:10px;margin-right:10px;padding:0px;min-width:60px;">pick days</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div id="selectInput_div">
+                    <div id="daystoSelect" class="d-flex flex-wrap"></div>
+                </div>
+            </div>
+            <button type="submit" onclick="hideForm('overlay_alarm');document.getElementById('Date').disabled = false;">Submit</button>
+        </form>
+    </div>
+</div>
+
+
+<!-------------------------------------------------------------------------------------------------------------------------------------------->
+<!--link form-->
+<div class="overlay" id="overlay_link" style="display: none;">
+    <div class="form-container">
+        <form id="linkForm" action="/toggel_items_status" method="post" onsubmit="return editlink(event,'add','1')">
+           <input type="hidden" name="item_id" id="link_item_id" >
+           <input type="hidden" name="table_id" value="{{ todo_list[0].id }}">
+            <select id="linkvalue" class="select" name="link" size="1">
+                {% for link in links %}
+                {% if link['type'] != 'main' %}
+                    <option value="{{ url_for(link['type'], item =link['id']) }}" data-table-id="{{ link['id'] }}" style="{% if link['type'] == 'calc' %}background-color: #FBFFD9;{% elif link['type'] == 'todo' %}background-color: #FBD9FF;{% elif link['type'] == 'table' %}background-color: #E2D9FF;{% else %}background-color: #EEFEEE;{% endif %}">{{link['title']}}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+            <button type="submit" onclick="hideForm('overlay_link')">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

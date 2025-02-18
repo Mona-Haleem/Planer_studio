@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block header %}
+<span style="font-size: 80px;">:</span>
+<span class="sub-title ">Log In</span>
+{% endblock %}
+
+{% block main %}
+<div class="container" style="max-width: 60%;">
+    <div class="row justify-content-center " style="margin-top:20%;border: 5px solid var(--itemborder);border-radius:15px;background-color: rgba(250, 250, 250, 0.7); padding: 20px; ">
+        <div class="col-md-6">
+            {% if message %}
+            <div>
+                <h4>{{ message }}</h4>
+            </div>
+            {% endif %}
+            <form action="/login" method="post">
+                <div class="mb-3">
+                    <input autocomplete="off" autofocus class="form-control" id="username" name="username" placeholder="Username" type="text">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control" id="password" name="password" placeholder="Password" type="password">
+                </div>
+                <div class="mb-3">
+                    <input class="form-check-input" id="login" name="loginType" type="radio" value="login" checked>
+                    <label class="form-check-label" for="login">Login</label>
+
+                    <input class="form-check-input" id="register" name="loginType" type="radio" value="register" >
+                    <label class="form-check-label" for="register">Register</label>
+                </div>
+                <button class="btn btn-primary" type="submit">Log In</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

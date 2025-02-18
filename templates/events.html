@@ -1,0 +1,228 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Events
+
+{% endblock %}
+
+{% block header %}
+<span style="font-size: 80px;">:</span>
+<h1 class="sub-title">Events</h1>
+{% endblock %}
+
+{% block main %}
+<h1 class="page-header">Events</h1>
+<table class="table table-striped" style=" width:95%;">
+    <thead >
+        <tr class="tables-header">
+            <th style="width: 50px;"></th>
+            <th style="width: 50px;"></th>
+            <th style="width: 50px;"></th>
+            <th style="width: calc((90% - 150px) / 4); "><h2>item</h2></th>
+            <th><h2>alarm</h2></th>
+            <th><h2>date</h2></th>
+            <th><h2>frequency</h2></th>
+        </tr>
+    </thead>
+    <!--event items-->
+    <tbody id="alarms-container"></tbody>
+        <!--event template-->
+    <tfoot style="display:none;">
+        <tr id="N_alarm_temp" >
+            <!--event buttons-->
+            <td><button id="N_remove" class="remove-btn btn-secondary" style=" border-radius: 50%; display: flex; align-items: center; justify-content: center;" onclick="remove('N_alarm_temp',N,'alarm')">
+                <img src="/static/icons/8.png" alt="Icon 2" style="width:120%; height:120%;">
+            </button></td>
+            <td><button id="N_alarm_btn" class="btn-secondary" style=" border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <img id="N_alarm" src="/static/icons/02.png"  alt="Icon 2" style="width:150%; height:150%;">
+            </button></td>
+            <td><button id="N_edit_btn" class="edit-btn btn-secondary" style="display: flex; align-items: center; justify-content: center; " >
+                <img src="/static/icons/4.png" alt="Icon 2" style="width:100%; height:150%;">
+            </button></td>
+            <!--event data-->
+            <td><a id="N_hyperlink" ><h3 id="N_item"></a></h3>
+                <!--edit event form-->
+                <form id="N-alarm-edit" style="display:none"  action="/update_element" method="post" onsubmit="return submitForm(event,'update','alarm','N-alarm-edit','container-test')">
+                   <input type="text" name="item" id="N_item">
+                   <button type="submit" onclick="toggleInput('N_item', 'N-alarm-edit')" class="btn-add" id="N_alarm" style="display:inline-block; ">&#x21E8;</button>
+               </form>
+            </td>
+            <td ><h4 id="N_timer"></h4></td>
+            <td ><h4 id="N_date"></h4> </td>
+            <td>
+                <select id="N_frequency" class="select" name="frequency" size="1" onchange="checkCustomOption(this,'N_selectInput','event' )">
+                {% for item in durations %}
+                    {% for label, value in item.items() %}
+                        <option value="{{ value }}" >{{ label }}</option>
+                    {% endfor %}
+                {% endfor %}
+                </select>
+                <div id="N_selectInput_div" style="position: relative; display:none;">
+                    <input autocomplete="off" class="form-control mx-auto w-auto" id="N_selectInput" name="durationinput" placeholder="custom" min="1" type="number" >
+                    <button type="button" class="btn-add" id="N_selectbtn" style="position: absolute; right: 0; top: 0; " >&#x21E8;</button>
+                </div>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+<!--- days temp --->
+<div id="N_day" class="d-flex" style="display: none;">
+    <input id="N_daycheckbox" type="checkbox" name="dates[]" class="me-2 ">
+    <h5 id="N_daylable" style="margin-left:-10px;margin-right:10px;padding:0px;min-width:60px;"></h5>
+</div>
+
+<button id="add-alarm" class="add-event">
+    <img src="/static/icons/6.png" alt="Icon 1" style="width: 100%;height:100;">
+</button>
+<!---add event form --->
+<div class="overlay" id="overlay_event" style="display: none;">
+    <div class="form-container">
+        <form id="eventForm" action="/update_element" method="post" onsubmit="return ">
+            <div class="row" style="max-width:500px;">
+                <div class="col" style="flex:1;display: flex; align-items: center;">
+                    <select id="event_type" class="select" name="event_type" size="4" onchange="pick_table(this.value)" >
+                        <option value="" style="display:none;" selected>--</option>
+                        <option value="alarm" >New</option>
+                        <option value="item" >pick item</option>
+                        <option value="category">pick category</option>
+                        <option value="table" >link with table</option>
+                    </select>
+                </div>
+                <div class="col" style="flex:4;background-color:#efefef;">
+                    <div class="row" style="margin:10px;margin-right:0px">
+                        <input type="text" id="eventName" name="Name" placeholder="Event" style="max-width:90%;" required >
+                     </div>
+                     <div class="row" style="margin-bottom:10px;">
+                        <div id="links" style="display:flex;width:50%;display:none;">
+                            <label  style="margin-left:-3%;margin-right:10px;">Link Table</label>
+                            <select id="linkvalue" class="select" name="link" size="1" style="width:50%" onchange="pick_link_table()" >
+                                <option value="">--</option>
+                                {% for link in links %}
+                                    {% if link['type'] != 'main' %}
+                                        <option value="{{ url_for(link['type'], item=link['id']) }}" data-table-id="{{ link['id'] }}" style="{% if link['type'] == 'calc' %}background-color: #FBFFD9;{% elif link['type'] == 'todo' %}background-color: #FBD9FF;{% elif link['type'] == 'table' %}background-color: #E2D9FF;{% else %}background-color: #EEFEEE;{% endif %}">{{link['title']}}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="items" style="display:flex;width:50%;display:none;">
+                            <label style="margin-left:-15%;margin-right:10px;">Event</label>
+                            <select id="pick_item" class="select" name="item_id" size="1" style="width:50%" onchange="document.getElementById('eventName').value = this.options[this.selectedIndex].textContent;"></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div style="display:flex;width:50%">
+                            <label style="margin-left:-3%;margin-right:10px;">Frequency</label>
+                            <select id="frequency" class="select" name="Type" size="1" onchange="load_days()">
+                                {% for item in durations %}
+                                    {% for label, value in item.items() %}
+                                        <option value="{{ value }}" >{{ label }}</option>
+                                    {% endfor %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div style="display:flex;width:50%">
+                            <label style="margin-right:10px;" >Time</label>
+                            <input type="time" id="Timer" name="Time" style="width:50%">
+                        </div>
+                    </div>
+                    <div class="row" style="margin-bottom:10px;margin-top:10px;">
+                        <div class="d-flex" >
+                            <div style="display:flex;width:50%;">
+                                <input type="date" id="Date" name="Date">
+                            </div>
+                            <div class="d-flex " style="display:flex;width:50%;display:none;">
+                                <input id="pickdays" type="checkbox" name="dates[]" class="me-2 " onchange="load_days()">
+                                <h5  style="margin-left:10px;margin-right:10px;padding:0px;min-width:60px;">pick days</h5>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div id="selectInput_div">
+                            <div id="daystoSelect" class="d-flex flex-wrap"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="user_id" name="user_id" value="{{user_id}}">
+            <button type="submit" onclick="hideForm('overlay_event');document.getElementById('Date').disabled = false;">Submit</button>
+        </form>
+    </div>
+</div>
+<!---edit event form --->
+<div class="overlay" id="overlay_edit_event" style="display: none;">
+    <div class="form-container">
+        <form id="edit_eventForm" action="/update_element" method="post" onsubmit="return submitForm(event, 'update', 'alarm', 'edit_eventForm', '')">
+            <div class="row" style="max-width:500px;">
+                 <div class="col" style="flex:4;background-color:#efefef;">
+                    <div class="row" style="margin:10px;margin-right:0px">
+                        <input type="text" id="edit_eventName" name="Name" placeholder="Event" style="max-width:90%;" required >
+                     </div>
+                     <div class="row" style="margin-bottom:10px;">
+                        <div id="links" style="display:flex;width:50%;display:none;">
+                            <label  style="margin-left:-3%;margin-right:10px;">Link Table</label>
+                            <select id="edit_linkvalue" class="select" name="link" size="1" style="width:50%" onchange="pick_link_table()" >
+                                <option value="">--</option>
+                                {% for link in links %}
+                                    {% if link['type'] != 'main' %}
+                                        <option value="{{ url_for(link['type'], item=link['id']) }}" data-table-id="{{ link['id'] }}" style="{% if link['type'] == 'calc' %}background-color: #FBFFD9;{% elif link['type'] == 'todo' %}background-color: #FBD9FF;{% elif link['type'] == 'table' %}background-color: #E2D9FF;{% else %}background-color: #EEFEEE;{% endif %}">{{link['title']}}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div style="display:flex;width:90%">
+                            <label style="margin-right:10px;" >Time</label>
+                            <input type="time" id="edit_Timer" name="Time" style="width:100%">
+                        </div>
+                    </div>
+                    <div class="row" style="margin-bottom:10px;margin-top:10px;">
+                        <div class="d-flex" >
+                            <div style="display:flex;width:100%;">
+                                <label style="margin-right:10px;" >Date</label>
+                                <input type="date" id="edit_Date" name="Date">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="alarm_id" name="id" >
+            <input type="hidden" id="alarm_item_id" name="item_id" >
+
+
+            <button type="submit" onclick="hideForm('overlay_edit_event');">Submit</button>
+        </form>
+    </div>
+</div>
+
+<!--load alarm items-->
+<script>
+    var alarms = {{ events | tojson | safe }};
+    var link_items = {{link_items|tojson }};
+    alarms.forEach(function (alarm) {
+        console.log("Loading alarm_temp:", alarm);
+        load_element('alarm_temp', alarm,  'alarms-container');
+        var alarmimg = document.getElementById(alarm['id'] + '_alarm');
+        setImageSource(alarmimg, alarm.alarm,'alarm');
+        addItemButtonsEvents(alarm,'alarm')
+    })
+    const addButton = document.getElementById('add-alarm');
+        if (addButton) {
+            addButton.addEventListener('click', function (event) {
+                showForm('overlay_event');
+                document.getElementById("daystoSelect").style.display = 'none';
+                const form = document.getElementById('eventForm');
+                    if (form) {
+                        form.onsubmit = function (event) {
+                            check_event_form(event,link_items,'eventForm','alarm')
+                        };
+
+                }
+            })
+        }
+
+
+</script>
+{% endblock %}

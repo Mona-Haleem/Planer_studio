@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Preferences
+{% endblock %}
+
+{% block header %}
+<span style="font-size: 80px;">:</span><span
+    class="sub-title">Preferences</span>
+{% endblock %}
+
+
+{% block main %}
+<div id="preferencesContainer">
+    <h1>Colors Thema</h1>
+     <div id="themaSelect" class="row">
+        <div class="prefrence-item" style="background-color: #001f3f;" onclick="setThema(0)">
+        <label for="defaultTheme" class="themeBox">Default</label>
+        </div>
+        <div class="prefrence-item " style="background-color: #333;" onclick="setThema(1)">
+        <label for="darkTheme" class="themeBox">Dark </label>
+        </div>
+        <div class="prefrence-item" style="background-color:  #f5f5f5;" onclick="setThema(2)">
+        <label for="lightTheme" class="themeBox">Light </label>
+        </div>
+        <div class="prefrence-item " style="background-color: #3498db;" onclick="setThema(3)">
+        <label for="blueTheme" class="themeBox">Blue Shades</label>
+        </div>
+        <div class="prefrence-item " style="background-color:  #d2b48c;" onclick="setThema(4)">
+        <label for="beigeTheme" class="themeBox">Shades of Brown</label>
+        </div>
+        <div class="prefrence-item" style="background-color:  #ffc0cb;"onclick="setThema(5)">
+        <label for="pinkTheme" class="themeBox">Light Pink</label>
+         </div>
+        <div class="prefrence-item" style="background-color: #aaa;"onclick="setThema(6)">
+        <label for="graysTheme" class="themeBox">Grays</label>
+        </div>
+    </div>
+ </div>
+
+
+
+<div id="preferencesContainer" >
+    <h1>Backgrounds</h1>
+     <div id="backgroundSelect">
+        {% for _ in range(10) %}
+        <img class="prefrence-item" alt="{{ loop.index }}_img" src="/static/backgrounds/{{ loop.index }}.jpg" width="100px;" height="150px" style="padding: 0px; margin: 0px;" onclick="setBackgroundUrl({{ loop.index }})">
+        {% endfor %}
+     </div>
+ </div>
+
+
+
+
+{% endblock %}

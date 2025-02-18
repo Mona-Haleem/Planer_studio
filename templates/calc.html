@@ -1,0 +1,344 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Calculator : {{ calculator[0].title }}
+{% endblock %}
+
+{% block header %}
+<span style="font-size: 80px;">:</span>
+<span class="sub-title">{{ calculator[0].title }}</span>
+{% endblock %}
+
+{% block main %}
+{% if calculator %}
+<h1 class="page-header">{{ calculator[0].title }}</h1>
+
+<div style="display:flex;">
+    <div class="col" style="margin-left:30%">
+        <div class="row item-container" style="max-height:120px;width:250px;">
+            <form id="display" >
+              <div style="display:block;">
+                  <h4>show by</h4>
+                  <input id="days" type="checkbox">days
+                   <input id="weeks" type="checkbox">weeks
+                  <input id="months" type="checkbox">months
+              </div>
+              <div id="showRange" style="display:block;">
+                  <input type="radio" name="range" value="all">all
+                  <input type="radio" name="range" value="current">current
+                  <input type="radio" name="range" value="custom">custom
+                 </div>
+                 <div id="daysToshow" style="display:none;">
+                  <input type="number" min ="1" id="daysToshowInput" name="daysToshow " min="2" value="2">
+                  </div>
+              </form>
+          </div>
+    </div>
+</div>
+
+
+
+  <div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4 item-container" style="margin-left:10%;height:50px">
+            <p>Start Date: {{ calculator[0].start_date }}</p>
+        </div>
+        <div class="col-md-4 item-container" style="margin-left:30%;height:50px">
+            <p>End Date: {{ calculator[0].end_date }}</p>
+        </div>
+    </div>
+</div>
+
+
+<div style="width:90%;margin-top:20px;">
+    <h1 style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">{{ calculator[0].goal }}</h1>
+    <div id="progress_bar">
+      <progress id="progress" value="{{progress}}" max="100"></progress>
+    </div>
+</div>
+
+
+<div id="targets" class="container mt-5">
+    <div class="row" style="margin-left:5%">
+        <div class="col-md-4" style="display:flex;max-height:30px;">
+            <h4>Start : </h4>
+            <input id="start" type="Number" class="form-control" style="width:40%;" name="start" value="{{goal_data.start}}" onchange="update_numbers(this.value,'',{{ calculator[0].id }},'start')">
+        </div>
+        <div class="col-md-4 "style="display:flex;max-height:30px;">
+            <h4>Current : </h4>
+            <input id="current" type="Number" class="form-control" style="width:40%;" name="current" value="{{goal_data.current}}" onchange="update_numbers(this.value,'',{{ calculator[0].id }},'current')">
+        </div>
+        <div class="col-md-4 "style="display:flex;max-height:30px;">
+            <h4>Target : </h4>
+            <input id="target" type="Number" class="form-control" style="width:40%;" name="target" value="{{goal_data.target}}" onchange="update_numbers(this.value,'',{{ calculator[0].id }},'target')">
+        </div>
+    </div>
+</div>
+<div class="container mt-3" style="margin-top:30px!important;" onclick="toggle('get_avgtotals');">
+    <h4 class="page-header"style="margin-bottom:0px;">Check progress</h4>
+    <hr class="my-4" style="height:3px;cursor: pointer;" >
+</div>
+<div id="get_avgtotals" class="container mt-5" style="margin-left:20%;display:none;">
+    <form id="avgtotals" class="calc-item" style="margin-top:-30px;">
+        <input type="hidden" name="table_id" value="{{calculator[0].id}}">
+        <label for="avgSelect">Get</label>
+        <select id="avgSelect" name="dataType">
+            <option >--</option>
+            <option value="avg">Average</option>
+            <option value="total">Total</option>
+            <option value="pieChart">Pie Chart</option>
+            <option value="chart">Chart</option>
+        </select>
+        <label >for</label>
+
+        <label for="allRadio">All</label>
+        <input type="radio" id="allRadio" name="time" value="all" checked onchange="toggle('period')">
+
+        <label for="lastRadio">Last</label>
+        <input type="radio" id="lastRadio" name="time" value="last" onchange="toggle('period')">
+
+        <input type="number" id="period" name="period" value="1" min="1" style="display:none;width:100px;">
+
+        <select id="periodType" name="periodType">
+            <option value="days" selected>Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
+            <option value="categories">Categories</option>
+        </select>
+
+    </form>
+    <div id="results" class="calc-item" style="display:;width:30%;margin-left:13%;margin-top:10px;">
+        <h2>Results</h2>
+        <div id="resultData"></div>
+
+    </div>
+</div>
+
+
+{% else %}
+<p>No calculatorfound.</p>
+{% endif %}
+<!----calculator items ---->
+<div class="container mt-5">
+    <div id="show-container"></div>
+</div>
+
+<!----calculator templates-->
+<div style="display:none;">
+<!--category template-->
+    <div class="accordion" id="N_category_accordion_temp">
+        <div class="accordion-item">
+            <!--category header-->
+            <h2 class="accordion-header bg-dark text-white" id="N_category_heading" >
+                <!--(+/-)button-->
+                <button id="N_sign" class="btn "style="max-width:15%;display: flex; align-items: center; justify-content: center;" onclick="update_numbers('','N',{{calculator[0].id}},'category')">
+                    <img src="/static/icons/1.png" alt="Icon" style="width:150%;height:150%;">
+                </button>
+                <!--header text-->
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#N_category_collapse"aria-expanded="true" aria-controls="N_category_collapse">
+                    <h2 id="N_category"></h2>
+                    <!--category edit form-->
+                    <form id="N-category-edit" style="display:none"  action="/update_element" method="post" onsubmit="return ">
+                        <input type="hidden" name="id" id="N_calc_category_id" value="N">
+                        <input type="text" name="Category" id="N_category">
+                        <span onclick="toggleInput('N_category', 'N-category-edit');submitForm(event,'update','category_accordion','N-category-edit','none')" >&#x21E8;</span>
+                    </form>
+                </button>
+                <!--category actions-->
+                <div style="display: flex; width: 30%;">
+                    <!-- category-item-total -->
+                    <input id="N_totals" type="text" class="form-control" value="0"  readonly style="max-width: 60%;">
+                    <!-- category buttons -->
+                    <button id="N_additem" class="btn btn-secondary" onclick="toggle('N_categoryitemform');"
+                        style="max-width:15%; display: flex; align-items: center; justify-content: center;">
+                        <img src="/static/icons/6.png" alt="Icon 1" style="width: 120%;height:120;">
+                    </button>
+
+                    <button id="N_delete_btn" class="btn btn-secondary" style="max-width:15%;display: flex; align-items: center; justify-content: center;">
+                        <img src="/static/icons/8.png" alt="Icon 2" style="width:250%; height:150%;">
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleInput('N_category', 'N-category-edit')"
+                        style="max-width:15%;display: flex; align-items: center; justify-content: center;">
+                        <img src="/static/icons/4.png" alt="Icon 2" style="width:150%; height:100%;">
+                    </button>
+                </div>
+            </h2>
+            <!--category items-->
+            <div id="N_category_collapse" class="accordion-collapse collapse show" aria-labelledby="N_category_heading"data-bs-parent="#N_category_accordion_temp">
+                <div class="accordion-body">
+                    <ul id="N_category_container">
+                        <!--items header-->
+                        <li>
+                            <div class="header">
+                                <div class="row  bg-dark text-white p-2" >
+                                    <div class="col" style="flex: 5;">
+                                        <h3>Item</h3>
+                                    </div>
+                                    <div class="col" style="flex: 1;">
+                                        <h3>Count</h3>
+                                    </div>
+                                    <div class="col" style="flex: 1;">
+                                        <h3>Value</h3>
+                                    </div>
+                                    <div class="col" style="flex: 1;">
+                                        <h3>Total</h3>
+                                    </div>
+                                    <div class="col" style="flex: 2;"></div>
+                                </div>
+                            </div>
+                        </li>
+                        <!--creat item form-->
+                        <li id="N_categoryitemform" style="display:none;">
+                            <form id="N_itemsForm" class="row" action="/update_element" method="post" onsubmit="return submitForm(event,'create','calc_item','N_itemsForm','N_category_container')">
+                                <div class="col" style="flex:5; ">
+                                    <input type="hidden" name="table_id" id="table_id" value="{{ calculator[0].id }}">
+                                    <input type="hidden" name="item_id" id="N_item_id">
+                                    <input type="hidden" name="category_id" id="N_category_id" >
+                                    <input type="hidden" name="week" id="N_week">
+                                    <input type="hidden" name="factor" id="N_factor" value="1">
+                                    <input type="hidden" name="date" id="N_date">
+                                    <input list="N_autocompleteList" autocomplete="off" class="form-control mx-auto w-auto" id="N_item_text" name="name" type="text" style="padding-right: 30px; box-sizing: border-box;" required oninput="handleAutocompleteChange(this,'N')">
+                                    <datalist id="N_autocompleteList" style="max-height:50px;">
+                                        {% for value in values %}
+                                            <option value="{{ value['item'] }}" data-item="{{ value['id'] }}" data-value="{{ value['value'] }}">
+                                        {% endfor %}
+                                    </datalist>
+                                </div>
+                                <div class="col" style="flex:1; justify-content:center;">
+                                    <input type="number" class="form-control" style="width:70%;" name="count" id="N_new_count" value="1" min="1">
+                                </div>
+                                <div class="col" style="flex:1;margin-right:8%; ">
+                                    <input type="number"class="form-control" style="width:70%;" name="value" id="N_new_value" defaultValue="1" onchange="document.getElementById('N_item_id').value ='';">
+                                </div>
+                                <!--<div class="col" style="flex:1">
+                                    <input type="hidden"class="form-control" style="width:70%;" name="value" id="N_new_total" displed>
+                               </div>-->
+                                <div class="col" style="flex:1">
+                                    <button type="submit" class="btn btn-secondary" id="submitCategoryButton" onclick="toggle('N_categoryitemform')" >&#x21E8</span>
+                                </div>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--item template-->
+    <ul>
+        <li id="N_calc_item_temp" class="row list-item-container">
+            <!-- item text -->
+            <div class="col" style="flex:5;">
+                <h3 id="N_item"></h3>
+                <input type="hidden" name="item_id" id="N_calc_item_id">
+                <!--item editing-->
+                <form id="N-item-edit" style="display:none" action="/update_element" method="post" onsubmit="return submitForm(event,'update','calc_item','N-item-edit','')">
+                    <input type="hidden" name="item_id" id="N_item_id">
+                    <input type="hidden" name="id" id="N_calc_id" value="N" >
+                    <input type="text" name="name" id="N_edit_item" placeholder="item" style="width:40%;">
+                    <input type="number" name="value" id="N_editvalue" value="0" style="width:20%;padding-right: 0;">
+                    <button type="submit" onclick="toggleInput('N_item', 'N-item-edit')" class="btn-add"id="N_item" style="display:inline-block; ">&#x21E8;</button>
+                </form>
+            </div>
+            <!--item numbers-->
+            <div class="col" style="flex:1;  justify-content:center;">
+                <input type="number" class="form-control" style="width:80%;padding-right: 0;" name="count" id="N_count" onchange="update_numbers(this.value,N,{{calculator[0].id}},'item');">
+            </div>
+            <div class="col" style="flex:1; ">
+                <input type="number" min="1"class="form-control" style="width:80%;background-color:#fff;padding-right: 0;" name="value" id="N_value" readonly>
+            </div>
+
+            <div class="col" style="flex:1;">
+                <input type="number" min="1" class="form-control" style="width:80%;background-color:#fff;padding-right: 0;" name="total" id="N_total" readonly>
+            </div>
+            <!-- item buttons-->
+            <div class="col" style="flex:2;display: inline-block;">
+                <div style="display:flex; justify-content:flex-end;">
+                    <button id=N_delete_btn class="btn btn-secondary"  onclick="remove('N_calc_item_temp', 'N'.split('_')[0], 'calc_item')"style="max-width:15%;min-width:40px;min-height:30px;display: flex; align-items: center; justify-content: center;">
+                        <img src="/static/icons/8.png" alt="Icon 2" style="width:250%; height:150%;">
+                    </button>
+                    <button class="btn btn-secondary"style="max-width:15%;min-width:40px;min-height:30px;display: flex; align-items: center; justify-content: center;" onclick="document.getElementById('N_edit_item').value=document.getElementById('N_item').textContent;toggleInput('N_item', 'N-item-edit')">
+                        <img src="/static/icons/4.png" alt="Icon 2" style="width:150%; height:100%;">
+                    </button>
+                </div>
+            </div>
+        </li>
+    </ul>
+
+    <!--date template-->
+    <div class="accordion" id="N_accordion">
+        <div class="accordion-item">
+            <!--date header-->
+            <h2 class="accordion-header" id="N_heading" >
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#N_collapse"aria-expanded="true" aria-controls="N_collapse " style="background-color:transparent;">
+                    <h2 id="N_text"></h2>
+                </button>
+                <div style="display: flex; width: 20%;">
+                    <!-- Display totals -->
+                    <h4 style="max-width: 50%;">Total |</h4>
+                    <input id="N_Totals" type="text" class="form-control" value="0" readonly style="max-width: 40%;">
+                    <!-- Add category Buttons -->
+                    <button class="btn btn-secondary" onclick="toggle('N_categoryFormDiv')" style="max-width:20%; display: flex; align-items: center; justify-content: center;">
+                        <img src="/static/icons/6.png" alt="Icon 1" style="width: 120%;height:120;">
+                    </button>
+                </div>
+            </h2>
+            <div id="N_collapse" class="accordion-collapse collapse" aria-labelledby="N_heading" data-bs-parent="#N_accordion">
+                <div class="accordion-body" >
+                    <!-- date items -->
+                    <ul id="N_container">
+                        <!--add category form-->
+                        <li id="N_categoryFormDiv" style="display:none;">
+                            <form id="N_categoryForm" action="/update_element" method="post" onsubmit="return submitForm(event,'create','category_accordion','N_categoryForm','N_container')">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div style="position: relative;">
+                                        <input type="hidden" name="name" value="N">
+                                        <input type="hidden" name="week" id="N_week">
+                                        <input type="hidden" name="date" id="N_date">
+                                        <input type="hidden" name="table_id" value="{{ calculator[0].id }}">
+                                        <input autocomplete="off" class="form-control mx-auto w-auto" id="Category" name="Category" type="text" style="padding-right: 30px; box-sizing: border-box;" required>
+                                        <button type="submit" class="btn-add" id="submitCategoryButton" onclick="toggle('N_categoryFormDiv')" style="position: absolute; right: 0; top: 0;">&#x21E8;</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<!---load calculator items-->
+<script>
+ var calculatorData = {{ calculator | tojson | safe }};
+ var values = {{ values | tojson | safe }};
+ console.log(values);
+ var month_data= {{ month_data | tojson | safe }};
+ var items = {{ items | tojson | safe }};
+document.addEventListener("DOMContentLoaded", function() {
+    console.log('values',values);
+    console.log('items',items);
+    const form = document.getElementById('display');
+    form.addEventListener('change', function() {
+        getFormValues(month_data, calculatorData[0]['id']);
+    });
+    const form2 = document.getElementById('avgtotals');
+    form2.addEventListener('change', function() {
+        calculate_avgtotals();
+    });
+    console.log("Month Data:", month_data,month_data.length);
+
+    // Call the function once the DOM is loaded
+    setDefaults(calculatorData);
+    getFormValues(month_data,calculatorData[0]['id'])
+  });
+
+
+</script>
+
+{% endblock %}

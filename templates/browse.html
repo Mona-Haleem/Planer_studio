@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    browse
+{% endblock %}
+
+{% block header %}
+<span style="font-size: 80px;">:</span>
+<span class="sub-title">Browse</span>
+{% endblock %}
+
+{% block main %}
+
+{% if items|length == 0 %}
+    <p>None created</p>
+{% else %}
+    {% for category, heading in categories.items() %}
+      <h1 class="page-header">
+         <img alt="{{category}}" class="browse-img" src="/static/icons/tables_icon/{{category}}.png" width="75px" height="75px" >
+         {{ heading }}:
+      </h1>
+      {% set category_items = items|selectattr('type', 'eq', category)|list %}
+        {% if category_items  %}
+          <div class="browse-item-container">
+            {% for item in category_items %}
+                <div id="{{item.id}}_table_temp" class="browse-item ">
+                   <!-- Display item details -->
+                   <a href="{{ url_for(category, item=item.id) }}">
+                    <h3 id="{{item.id}}_title">{{ item.title|capitalize }}</h3>
+                   </a>
+                   <input type="text" id="{{item.id}}_goals" name="goals" value=" {{ item.goals}}" placeholder="goal" style="background_color:#fff; width:90%; height:40px;" disabled>
+                   <div style="display:flex;flex-direction:row">
+                       <input type="textarea" id="{{item.id}}_description" name="description" value=" {{item.description}}" style="background_color:#fff; width:70%; height:60px;margin-left:5%" disabled>
+                       <!--item buttons-->
+                       <div class="buttons" style="display:flex;flex-direction:column;margin-left:2%">
+                            <button class="btn btn-primary btn-circle browsebtn"  onclick="remove('{{item.id}}_table_temp', '{{item.id}}','table')">
+                                <img src="/static/icons/8.png" alt="Icon 2" style="width:250%; height:150%;">
+                            </button>
+                            <button class="btn btn-primary btn-circle browsebtn"  onclick="showForm('overlay'); updateHTML({{item}},'edit_table_form')">
+                                <img src="/static/icons/4.png" alt="Icon 2" style="width:150%; height:100%;">
+                            </button>
+                       </div>
+                   </div>
+                </div>
+            {% endfor %}
+          </div>
+        {% else %}
+            <p>None created</p>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+<!---------edit form------------------>
+<div class="overlay" id="overlay" style="display: none;">
+    <div class="form-container">
+        <form id="edit_table_form" action="/update_element" method="post" onsubmit="return submitForm(event,'update','table','edit_table_form','browse-item-container')">
+            <input type="hidden" name="id" id="edit_id">
+            <input autocomplete="off" autofocus class="form-control mb-3" id="edit_title" name="title" type="text"  style="background-color:#fff">
+            <input type="text" id="edit_goals" name="goals" placeholder="goal" style="width:180px; height:40px;" >
+            <input type="date" id="edit_start_date" name="startDate"  class="form-control mb-3"  onchange="calculateEndDate()">
+            <select id="edit_duration" class="select form-control mb-3" name="durationSelect" size="1" onchange="checkCustomOption(this,'durationInput','table')">
+                <option value="0" selected>once</option>
+                <option value="1">Daily</option>
+                <option value="7" >Weekly</option>
+                <option value="30">Monthly</option>
+                <option value="temp">Custom +</option>
+            </select>
+             <div id="durationInput_div" style="position: relative; display:none;">
+                <input autocomplete="off" class="form-control mb-3" id="durationInput" name="durationinput" placeholder="Custom" type="number"  min="1" >
+                <button type="button" class="btn-add" id="durationInput_selectbtn" style="position: absolute; right: 0; top: 0; " >&#x21E8;</button>
+             </div>
+            <input type="date" id="edit_end_date" name="endDate"  class="form-control mb-3" style="margin-top:70px;">
+            <input type="textarea" id="edit_description" name="description"  style="width:180px; height:80px;" >
+            <button class="btn btn-primary btn-circle " type="submit" onclick="hideForm('overlay')">confirm</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
